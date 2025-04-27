@@ -1,0 +1,27 @@
+
+
+[CMD]
+
+1. CD C:\91APP\GoogleADK\agents\e-commerce (非必要)
+
+
+
+2. poetry install (非必要)
+(非必要)
+
+
+3.取得虛擬路徑(非必要)
+poetry env info --path
+
+=> C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\e-commerce-GHQxuvyi-py3.13
+
+
+
+[PowerShell]
+Set-Location "C:\91APP\GoogleADK\agents\e-commerce"
+
+ & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\e-commerce-GHQxuvyi-py3.13\Scripts\Activate.ps1"
+ 
+
+adk web
+

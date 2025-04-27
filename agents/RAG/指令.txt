@@ -1,0 +1,15 @@
+
+先用 CMD 取得虛擬路徑
+poetry env info --path
+C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\rag-LPL6-hRm-py3.13
+
+再用 PowerShell
+Set-Location "C:\Users\Felix Yu\Desktop\AI Agent\adk-samples-main\agents\Rag"
+
+ & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\rag-LPL6-hRm-py3.13\Scripts\Activate.ps1"
+ 
+ adk run llm_auditor
+
+
+adk web
+
