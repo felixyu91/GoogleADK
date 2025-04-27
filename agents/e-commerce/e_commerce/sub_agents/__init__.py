@@ -15,5 +15,6 @@
 from .complaint.agent import root_agent as complaint_agent
 from .order.agent import root_agent as order_agent
 from .faq.agent import root_agent as faq_agent
+from .faq2.agent import root_agent as faq2_agent
 
-__all__ = ["complaint_agent", "order_agent", "faq_agent"]
+__all__ = ["complaint_agent", "order_agent", "faq_agent", "faq2_agent"]

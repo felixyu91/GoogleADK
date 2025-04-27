@@ -1,4 +1,4 @@
-"""faq Agent: 透過Rag檢索小三美日網店的基本資訊。"""
+"""faq Agent: 透過 Rag 檢索小三美日網店的常見問題。"""
 import os
 
 from google.genai import types
@@ -30,7 +30,6 @@ ask_vertex_retrieval = VertexAiRagRetrieval(
 )
 
 root_agent = LlmAgent(
-    # 考慮使用更高質量的模型
     model=os.getenv("FAQ_AGENT_MODEL"),
     name='faq_agent',
     instruction=return_instructions_faq(),
