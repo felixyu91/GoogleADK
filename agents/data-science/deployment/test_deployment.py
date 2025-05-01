@@ -21,6 +21,26 @@ from absl import app, flags
 from dotenv import load_dotenv
 from vertexai import agent_engines
 
+# 首先確保環境變數已經設置正確
+print(f"檢查環境變數設置:")
+print(f"BQML_AGENT_MODEL: {os.getenv('BQML_AGENT_MODEL')}")
+print(f"BIGQUERY_AGENT_MODEL: {os.getenv('BIGQUERY_AGENT_MODEL')}")
+print(f"SQL_AGENT_MODEL: {os.getenv('SQL_AGENT_MODEL')}")
+print(f"CODE_AGENT_MODEL: {os.getenv('CODE_AGENT_MODEL')}")
+print(f"ROOT_AGENT_MODEL: {os.getenv('ROOT_AGENT_MODEL')}")
+
+# 如果環境變數未設置，設置它們
+if not os.getenv('BQML_AGENT_MODEL'):
+    os.environ['BQML_AGENT_MODEL'] = 'gemini-2.0-flash-001'
+if not os.getenv('BIGQUERY_AGENT_MODEL'):
+    os.environ['BIGQUERY_AGENT_MODEL'] = 'gemini-2.0-flash-001'
+if not os.getenv('SQL_AGENT_MODEL'):
+    os.environ['SQL_AGENT_MODEL'] = 'gemini-2.0-flash-001'
+if not os.getenv('CODE_AGENT_MODEL'):
+    os.environ['CODE_AGENT_MODEL'] = 'gemini-2.0-flash-001'
+if not os.getenv('ROOT_AGENT_MODEL'):
+    os.environ['ROOT_AGENT_MODEL'] = 'gemini-2.0-flash-001'
+
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string("project_id", None, "GCP project ID.")

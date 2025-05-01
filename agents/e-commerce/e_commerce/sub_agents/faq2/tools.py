@@ -1,60 +1,96 @@
-import requests
-from typing import Dict, Any, Optional
+from typing import Optional
+import time
+import os
 
-class DialogflowTools:
-    """對話流工具集，提供與 Dialogflow API 相關的功能"""
-    
-    def __init__(self, project_id: str = "arch-qa-454806", 
-                 location: str = "global", 
-                 agent_id: str = "63e53e79-74dd-4aa9-b414-4222f5f290b7"):
-        """初始化對話流工具集
-        
+# 使用正確的 Dialogflow CX SDK 導入語句
+try:
+    from google.cloud.dialogflowcx_v3.services.sessions import SessionsClient
+    from google.cloud.dialogflowcx_v3.types import (
+        DetectIntentRequest,
+        DetectIntentResponse,
+        QueryInput, TextInput,
+        QueryParameters
+    )
+except ImportError as e:
+    print(f"[重要警告] 無法導入 Dialogflow CX SDK: {e}")
+    print("請確保已安裝 google-cloud-dialogflow-cx 套件:")
+    print("poetry add google-cloud-dialogflow-cx")
+    # 重新拋出錯誤，確保使用者看到問題
+    raise
+
+class DialogflowSDKTools:
+    """使用 Google Cloud Dialogflow CX SDK 與 Dialogflow 服務通訊"""
+
+    def __init__(
+        self,
+        project_id: str = "arch-qa-454806",
+        location: str = "global",
+        agent_id: str = "63e53e79-74dd-4aa9-b414-4222f5f290b7"
+    ):
+        """
         Args:
-            project_id: Google Cloud 專案 ID
-            location: 代理程式所在位置
-            agent_id: 代理程式 ID
+            project_id: GCP 專案 ID
+            location: 代理位置
+            agent_id: Dialogflow CX 代理 ID
         """
         self.project_id = project_id
         self.location = location
         self.agent_id = agent_id
-        self.base_url = f"https://global-dialogflow.googleapis.com/v3/projects/{project_id}/locations/{location}/agents/{agent_id}"
-    
-    def detect_intent(self, session_id: str, text: str, access_token: str) -> Optional[Dict[str, Any]]:
-        """使用 Dialogflow 偵測使用者意圖
         
+        # 檢查環境變數
+        if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is None:
+            print("[警告] 環境變數 GOOGLE_APPLICATION_CREDENTIALS 未設定")
+            print("請設定此環境變數指向您的 Google Cloud 服務帳號金鑰檔案")
+        
+        # 建立 SessionsClient，SDK 會自動讀取環境變數 GOOGLE_APPLICATION_CREDENTIALS
+        print("[資訊] 初始化 Dialogflow CX SDK")
+        self.client = SessionsClient()
+
+    def detect_intent(
+        self,
+        session_id: str,
+        text: str,
+        language_code: str = "zh-TW",
+        time_zone: str = "Asia/Hong_Kong",
+    ) -> Optional[DetectIntentResponse]:
+        """
+        使用 Dialogflow CX SDK 偵測使用者意圖
+
         Args:
             session_id: 對話工作階段 ID
             text: 使用者輸入文字
-            access_token: Google OAuth 存取權杖
-            
+            language_code: 語言代碼（預設繁體中文）
+            time_zone: 時區（預設亞洲／香港）
         Returns:
-            Dialogflow 回應，若請求失敗則回傳 None
+            DetectIntentResponse 物件；若失敗則回傳 None
         """
         try:
-            url = f"{self.base_url}/sessions/{session_id}:detectIntent"
+            # 建立完整的 session 路徑
+            session_path = f"projects/{self.project_id}/locations/{self.location}/agents/{self.agent_id}/sessions/{session_id}"
             
-            headers = {
-                "X-Goog-User-Project": self.project_id,
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {access_token}"
-            }
+            # 設定查詢文字輸入
+            text_input = TextInput(text=text)
+            query_input = QueryInput(text=text_input, language_code=language_code)
             
-            payload = {
-                "queryInput": {
-                    "text": {
-                        "text": text
-                    },
-                    "languageCode": "zh-tw"
-                },
-                "queryParams": {
-                    "timeZone": "Asia/Hong_Kong"
-                }
-            }
+            # 設定查詢參數
+            query_params = QueryParameters(time_zone=time_zone)
             
-            response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            return response.json()
+            # 編寫請求
+            request = DetectIntentRequest(
+                session=session_path,
+                query_input=query_input,
+                query_params=query_params
+            )
+            
+            # 向 Dialogflow CX 發送請求
+            print(f"[開始] 發送請求到 Dialogflow CX: {text}")
+            start_time = time.time()
+            response = self.client.detect_intent(request)
+            end_time = time.time()
+            print(f"[完成] Dialogflow CX 回應時間: {end_time - start_time:.2f} 秒")
+            
+            return response
             
         except Exception as e:
-            print(f"呼叫 Dialogflow API 時發生錯誤: {str(e)}")
+            print(f"[錯誤] 呼叫 Dialogflow CX detect_intent 失敗：{e}")
             return None

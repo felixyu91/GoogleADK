@@ -1,4 +1,3 @@
-
 """Deployment script for Data Science agent."""
 
 import logging
@@ -109,16 +108,12 @@ def setup_staging_bucket(
 
     return f"gs://{bucket_name}"
 
-_AI_PLATFORM_GIT = (
-    "git+https://github.com/googleapis/python-aiplatform.git@copybara_738852226"
-)
-
 # Prepare your agent for Agent Engine
 def create(env_vars: dict[str, str]) -> None:
     """Creates and deploys the agent."""
     adk_app = AdkApp(
         agent=root_agent,
-        enable_tracing=True,
+        enable_tracing=False,
         env_vars=env_vars
     )
 
@@ -179,12 +174,12 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     )
     env_vars["GOOGLE_CLOUD_PROJECT"] = project_id
     env_vars["GOOGLE_CLOUD_LOCATION"] = location
-    env_vars["RAG_CORPUS"] = os.getenv("RAG_CORPUS")
-    env_vars["ROOT_AGENT_MODEL"] = os.getenv("ROOT_AGENT_MODEL")
-    env_vars["COMPLAINT_AGENT_MODEL"] = os.getenv("COMPLAINT_AGENT_MODEL")
-    env_vars["ORDER_AGENT_MODEL"] = os.getenv("ORDER_AGENT_MODEL")
-    env_vars["FAQ_AGENT_MODEL"] = os.getenv("FAQ_AGENT_MODEL")
-    env_vars["DIALOGFLOW_ACCESS_TOKEN"] = os.getenv("DIALOGFLOW_ACCESS_TOKEN")
+    env_vars["BQ_DATASET_ID"] = os.getenv("BQ_DATASET_ID")
+    env_vars["BQ_PROJECT_ID"] = os.getenv("BQ_PROJECT_ID")
+    env_vars["BQML_RAG_CORPUS_NAME"] = os.getenv("BQML_RAG_CORPUS_NAME")
+    env_vars["CODE_INTERPRETER_EXTENSION_NAME"] = os.getenv(
+        "CODE_INTERPRETER_EXTENSION_NAME")
+
 
     logger.info("Using PROJECT: %s", project_id)
     logger.info("Using LOCATION: %s", location)

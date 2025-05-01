@@ -1090,6 +1090,27 @@ google-auth = ">=1.25.0,<3.0dev"
 grpc = ["grpcio (>=1.38.0,<2.0dev)", "grpcio-status (>=1.38.0,<2.0.dev0)"]
 
 [[package]]
+name = "google-cloud-dialogflow-cx"
+version = "1.41.0"
+description = "Google Cloud Dialogflow Cx API client library"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "google_cloud_dialogflow_cx-1.41.0-py3-none-any.whl", hash = "sha256:e018e80219bb058e8cf86af60204af89a78e95d9cde060667a36a83d90268d49"},
+    {file = "google_cloud_dialogflow_cx-1.41.0.tar.gz", hash = "sha256:d85440e33b93306d68893f6f0b0bdebf953f55472fc318581ebc35e68cfaea63"},
+]
+
+[package.dependencies]
+google-api-core = {version = ">=1.34.1,<2.0.dev0 || >=2.11.dev0,<3.0.0", extras = ["grpc"]}
+google-auth = ">=2.14.1,<2.24.0 || >2.24.0,<2.25.0 || >2.25.0,<3.0.0"
+proto-plus = [
+    {version = ">=1.25.0,<2.0.0", markers = "python_version >= \"3.13\""},
+    {version = ">=1.22.3,<2.0.0"},
+]
+protobuf = ">=3.20.2,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<7.0.0"
+
+[[package]]
 name = "google-cloud-logging"
 version = "3.12.0"
 description = "Stackdriver Logging API client library"
@@ -3871,4 +3892,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "d1f7f430a45622144022e9278d0ce1bdf575cfbee3614ffe2a3de9f0a2b88795"
+content-hash = "beb53cc993e5d6f8e92820be7ef7953730c733cf04eb0c77918c1c9d34c63be7"

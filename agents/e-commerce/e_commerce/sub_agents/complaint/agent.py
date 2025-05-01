@@ -31,7 +31,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
         )
 
 root_agent = LlmAgent(
-    model=os.getenv("COMPLAINT_AGENT_MODEL"),
+    model="gemini-2.0-flash-001",
     name="complaint_agent",
     instruction=return_instructions_complaint(),
     global_instruction=return_global_instructions_complaint(),

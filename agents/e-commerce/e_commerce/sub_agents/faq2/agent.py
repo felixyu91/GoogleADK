@@ -1,4 +1,4 @@
-"""faq Agent: 透過 Dialogflow API 檢索小三美日網店的常見問題。"""
+"""faq Agent: 透過 Dialogflow SDK 檢索小三美日網店的常見問題。"""
 import os
 
 from google.genai import types
@@ -6,15 +6,16 @@ from google.adk.agents import LlmAgent
 
 from dotenv import load_dotenv
 from .prompts import return_instructions_faq2, return_global_instructions_faq2
-from .tools import DialogflowTools
+from .tools import DialogflowSDKTools
 
 load_dotenv()
 
-dialogflow_tools = DialogflowTools()
+# 初始化 Dialogflow SDK 工具
+dialogflow_tools = DialogflowSDKTools()
 
 def query_dialogflow(text: str) -> str:
     """
-    將使用者的問題傳送到 Dialogflow API 獲取回應
+    將使用者的問題傳送到 Dialogflow CX 使用 SDK 獲取回應
     
     Args:
         text: 使用者輸入的文字
@@ -22,30 +23,43 @@ def query_dialogflow(text: str) -> str:
     Returns:
         Dialogflow 回傳的回應內容
     """
-
-    access_token = os.getenv("DIALOGFLOW_ACCESS_TOKEN")
+    # 產生一個唯一的對話 ID
     session_id = f"cc-87e66248-ec5b-468a-bfc0-a864593574a9"
     
-    # 呼叫 Dialogflow API
+    # 使用 SDK 向 Dialogflow CX 查詢意圖
     response = dialogflow_tools.detect_intent(
         session_id=session_id,
         text=text,
-        access_token=access_token
     )
     
-    # 解析回應並返回相關內容
-    if response and 'queryResult' in response:
-        response_messages = response['queryResult'].get('responseMessages', [])
-        if response_messages and len(response_messages) > 0:
-            text_obj = response_messages[0].get('text', {})
-            if text_obj and 'text' in text_obj and len(text_obj['text']) > 0:
-                return text_obj['text'][0]
-        return "無法理解您的問題"
-    else:
-        return "抱歉，我目前無法回應您的問題，請稍後再試。"
+    # 解析回應
+    if response:
+        # 取得 QueryResult
+        query_result = response.query_result
+        
+        # 提取意圖資訊（若有）
+        intent = "未識別意圖"
+        if query_result.intent and query_result.intent.display_name:
+            intent = query_result.intent.display_name
+            
+        # 首先嘗試從回應訊息中獲取文字
+        if query_result.response_messages:
+            for msg in query_result.response_messages:
+                if hasattr(msg, "text") and msg.text and msg.text.text:
+                    return msg.text.text[0] if msg.text.text else f"我理解你想詢問: {intent}"
+        
+        # 如果回應訊息中沒有文字，嘗試從 fulfillment_text 獲取
+        if query_result.fulfillment_text:
+            return query_result.fulfillment_text
+        
+        # 最後回傳識別的意圖
+        return f"我理解你想詢問關於「{intent}」的問題，但目前沒有特定回應。"
+    
+    # 如果完全無法獲取回應
+    return "抱歉，我目前無法回應您的問題，請稍後再試。"
 
 root_agent = LlmAgent(
-    model=os.getenv("FAQ_AGENT_MODEL"),
+    model=os.getenv("FAQ_AGENT_MODEL", "gemini-2.0-flash-001"),
     name='faq2_agent',
     instruction=return_instructions_faq2(),
     global_instruction=return_global_instructions_faq2(),
