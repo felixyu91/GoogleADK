@@ -10,9 +10,13 @@ from dotenv import load_dotenv
 from .tools import (
     get_order_details,
 )
-from .prompts import return_instructions_order, return_global_instructions_order
+from .prompts import return_instructions, return_global_instructions
+from e_commerce.base_tools import get_shop_id, get_shop_name
 
 load_dotenv()
+
+shop_id = get_shop_id()
+shop_name = get_shop_name(shop_id)
 
 def setup_before_agent_call(callback_context: CallbackContext):
     """設置代理調用前的準備工作。"""
@@ -24,7 +28,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
     if "active_order_id" in callback_context.state:
         order_id = callback_context.state["active_order_id"]
         callback_context._invocation_context.agent.instruction = (
-            return_instructions_order()
+            return_instructions()
             + f"""
     
     --------- 目前正在處理的訂單 ---------
@@ -36,8 +40,8 @@ def setup_before_agent_call(callback_context: CallbackContext):
 root_agent = LlmAgent(
     model="gemini-2.0-flash-001",
     name="order_agent",
-    instruction=return_instructions_order(),
-    global_instruction=return_global_instructions_order(),
+    instruction=return_instructions(),
+    global_instruction=return_global_instructions(shop_name),
     before_agent_callback=setup_before_agent_call,
     tools=[
         get_order_details

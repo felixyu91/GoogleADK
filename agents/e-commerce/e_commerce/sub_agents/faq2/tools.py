@@ -4,13 +4,17 @@ import os
 import google.auth
 import google.auth.transport.requests
 
+DEFAULT_AGENT_IDS = {
+    1: "63e53e79-74dd-4aa9-b414-4222f5f290b7",  # 小三美日
+    2: "1958cdad-1e19-4c11-8360-54281f7e7b97",  # 莎莎
+}
+
 # 使用正確的 Dialogflow CX SDK 導入語句
 try:
     credentials, project = google.auth.default()
     # print(f"成功獲取默認憑證！專案 ID: {project}")
     # print(f"憑證類型: {type(credentials).__name__}")
     # print(f"憑證是否有效: {credentials.valid}")
-
 
     from google.cloud.dialogflowcx_v3.services.sessions import SessionsClient
     from google.cloud.dialogflowcx_v3.types import (
@@ -23,6 +27,22 @@ except ImportError as e:
     print(f"[重要警告] 無法導入 Dialogflow CX SDK: {e}")
     print("poetry add google-cloud-dialogflow-cx")
     raise
+
+def get_agent_id(shop_id: int) -> int:
+    """
+    根據商店 ID 獲取對應的 Dialogflow Agent ID
+    
+    Returns:
+        對應的 Dialogflow Agent ID 字符串
+    """
+    if shop_id is None:
+        shop_id = get_shop_id()
+    
+    # 根據商店 ID 獲取對應的 Agent ID
+    agent_id = DEFAULT_AGENT_IDS.get(shop_id, DEFAULT_AGENT_IDS[1])
+    print(f"agent_id: {agent_id}")
+
+    return agent_id
 
 class DialogflowSDKTools:
     """使用 Google Cloud Dialogflow CX SDK 與 Dialogflow 服務通訊"""
@@ -59,6 +79,7 @@ class DialogflowSDKTools:
         text: str,
         language_code: str = "zh-TW",
         time_zone: str = "Asia/Hong_Kong",
+        max_retries: int = 3,
     ) -> Optional[DetectIntentResponse]:
         """
         使用 Dialogflow CX SDK 偵測使用者意圖
@@ -79,8 +100,21 @@ class DialogflowSDKTools:
             text_input = TextInput(text=text)
             query_input = QueryInput(text=text_input, language_code=language_code)
             
-            # 設定查詢參數
-            query_params = QueryParameters(time_zone=time_zone)
+            # 調整查詢參數，優化知識庫匹配
+            query_params = QueryParameters(
+                time_zone=time_zone,
+                parameters={
+                    # 提高知識庫檢索的優先級
+                    "knowledgeBaseQuerySource": "knowledge",
+                    "enableKnowledgeConnectors": True,
+                    "disableWebhook": False,  # 確保 webhook 可用於知識庫查詢
+                    "knowledgeAnswer": {
+                        "enabled": True,
+                        "confidence_threshold": 0.3,  # 降低閾值以增加匹配機會
+                        "max_answers": 3  # 增加返回答案數量
+                    }
+                }
+            )
             
             # 編寫請求
             request = DetectIntentRequest(
@@ -90,11 +124,30 @@ class DialogflowSDKTools:
             )
             
             # 向 Dialogflow CX 發送請求
-            print(f"[開始] 發送請求到 Dialogflow CX: {text}")
-            start_time = time.time()
-            response = self.client.detect_intent(request)
-            end_time = time.time()
-            print(f"[完成] Dialogflow CX 回應時間: {end_time - start_time:.2f} 秒")
+            print(f"[Dialogflow CX] 發送請求: {text}")
+            
+            retry_count = 0
+            while retry_count <= max_retries:  # 允許初始嘗試 + max_retries 次重試
+                start_time = time.time()
+                response = self.client.detect_intent(request)
+                end_time = time.time()
+                print(f"回應時間: {end_time - start_time:.2f} 秒")
+                
+                # 檢查 match_type 是否為 8 (KNOWLEDGE)
+                if (response and response.query_result and 
+                    response.query_result.match and 
+                    response.query_result.match.match_type == 8):
+                    return response
+                
+                # 如果不是 KNOWLEDGE，且還有重試次數，則重試
+                if retry_count < max_retries:
+                    retry_count += 1
+                    print(f"[重試] match_type 不是 8 (KNOWLEDGE)，目前為 {response.query_result.match.match_type if response.query_result.match else 'None'}，第 {retry_count} 次重試...")
+                    time.sleep(0.5)  # 短暫延遲，避免過快重試
+                else:
+                    # 已用完所有重試次數，返回最後一次嘗試的結果
+                    print(f"[警告] 已重試 {max_retries} 次，仍未獲得 KNOWLEDGE 匹配結果")
+                    return response
             
             return response
             

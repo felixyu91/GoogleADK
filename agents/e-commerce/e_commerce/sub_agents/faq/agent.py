@@ -5,11 +5,14 @@ from google.genai import types
 from google.adk.agents import LlmAgent
 from google.adk.tools.retrieval.vertex_ai_rag_retrieval import VertexAiRagRetrieval
 from vertexai.preview import rag
-
 from dotenv import load_dotenv
-from .prompts import return_instructions_faq, return_global_instructions_faq
+from .prompts import return_instructions, return_global_instructions
+from e_commerce.base_tools import get_shop_id, get_shop_name
 
 load_dotenv()
+
+shop_id = get_shop_id()
+shop_name = get_shop_name(shop_id)
 
 ask_vertex_retrieval = VertexAiRagRetrieval(
     name='retrieve_rag_documentation',
@@ -32,8 +35,8 @@ ask_vertex_retrieval = VertexAiRagRetrieval(
 root_agent = LlmAgent(
     model="gemini-2.0-flash-001",
     name='faq_agent',
-    instruction=return_instructions_faq(),
-    global_instruction=return_global_instructions_faq(),
+    instruction=return_instructions(),
+    global_instruction=return_global_instructions(shop_name),
     tools=[
         ask_vertex_retrieval,
     ],

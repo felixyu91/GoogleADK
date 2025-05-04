@@ -13,5 +13,10 @@
 # limitations under the License.
 
 from . import agent
+# 從基底工具模組中導出方法，方便直接引用
+from .base_tools import (
+    get_shop_id,
+    get_shop_name
+)
 
 __all__ = ["agent"]

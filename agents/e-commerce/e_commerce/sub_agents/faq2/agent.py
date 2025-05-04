@@ -1,16 +1,17 @@
-"""faq Agent: 透過 Dialogflow SDK 檢索小三美日網店的常見問題。"""
+"""faq Agent: 透過 Dialogflow SDK 檢索常見問題。"""
 import os
 
 from google.genai import types
 from google.adk.agents import LlmAgent
-
 from dotenv import load_dotenv
-from .prompts import return_instructions_faq2, return_global_instructions_faq2
-from .tools import DialogflowSDKTools
+from .prompts import return_instructions, return_global_instructions
+from .tools import DialogflowSDKTools, get_agent_id
+from e_commerce.base_tools import get_shop_id, get_shop_name
 
 load_dotenv()
 
-# 初始化 Dialogflow SDK 工具
+shop_id = get_shop_id()
+shop_name = get_shop_name(shop_id)
 dialogflow_tools = DialogflowSDKTools()
 
 def query_dialogflow(text: str) -> str:
@@ -23,10 +24,8 @@ def query_dialogflow(text: str) -> str:
     Returns:
         Dialogflow 回傳的回應內容
     """
+    agent_id = get_agent_id(shop_id)
 
-    # 小三:63e53e79-74dd-4aa9-b414-4222f5f290b7
-    # 莎莎:1958cdad-1e19-4c11-8360-54281f7e7b97
-    agent_id = f"cc-87e66248-ec5b-468a-bfc0-a864593574a9"
     session_id = f"cc-87e66248-ec5b-468a-bfc0-a864593574a9"
     
     # 使用 SDK 向 Dialogflow CX 查詢意圖
@@ -41,11 +40,6 @@ def query_dialogflow(text: str) -> str:
         # 取得 QueryResult
         query_result = response.query_result
         
-        # 提取意圖資訊（若有）
-        intent = "未識別意圖"
-        if query_result.intent and query_result.intent.display_name:
-            intent = query_result.intent.display_name
-            
         # 首先嘗試從回應訊息中獲取文字
         if query_result.response_messages:
             for msg in query_result.response_messages:
@@ -65,8 +59,8 @@ def query_dialogflow(text: str) -> str:
 root_agent = LlmAgent(
     model=os.getenv("FAQ_AGENT_MODEL", "gemini-2.0-flash-001"),
     name='faq2_agent',
-    instruction=return_instructions_faq2(),
-    global_instruction=return_global_instructions_faq2(),
+    instruction=return_instructions(),
+    global_instruction=return_global_instructions(shop_name),
     tools=[
         query_dialogflow,
     ],

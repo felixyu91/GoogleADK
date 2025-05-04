@@ -7,9 +7,13 @@ from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 
 from dotenv import load_dotenv
-from .prompts import return_instructions_complaint, return_global_instructions_complaint
+from .prompts import return_instructions, return_global_instructions
+from e_commerce.base_tools import get_shop_id, get_shop_name
 
 load_dotenv()
+
+shop_id = get_shop_id()
+shop_name = get_shop_name(shop_id)
 
 def setup_before_agent_call(callback_context: CallbackContext):
     """設置代理調用前的準備工作。"""
@@ -33,8 +37,8 @@ def setup_before_agent_call(callback_context: CallbackContext):
 root_agent = LlmAgent(
     model="gemini-2.0-flash-001",
     name="complaint_agent",
-    instruction=return_instructions_complaint(),
-    global_instruction=return_global_instructions_complaint(),
+    instruction=return_instructions(),
+    global_instruction=return_global_instructions(shop_name),
     before_agent_callback=setup_before_agent_call,
     tools=[
     ],
