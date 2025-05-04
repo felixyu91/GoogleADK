@@ -23,11 +23,15 @@ def query_dialogflow(text: str) -> str:
     Returns:
         Dialogflow 回傳的回應內容
     """
-    # 產生一個唯一的對話 ID
+
+    # 小三:63e53e79-74dd-4aa9-b414-4222f5f290b7
+    # 莎莎:1958cdad-1e19-4c11-8360-54281f7e7b97
+    agent_id = f"cc-87e66248-ec5b-468a-bfc0-a864593574a9"
     session_id = f"cc-87e66248-ec5b-468a-bfc0-a864593574a9"
     
     # 使用 SDK 向 Dialogflow CX 查詢意圖
     response = dialogflow_tools.detect_intent(
+        agent_id=agent_id,
         session_id=session_id,
         text=text,
     )

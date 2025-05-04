@@ -23,7 +23,38 @@ Set-Location "C:\91APP\GoogleADK\agents\e-commerce"
  & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\e-commerce-GHQxuvyi-py3.12\Scripts\Activate.ps1"
  
 
-adk web
+poetry run adk web
 
-adk api_server
+poetry run adk api_server
 
+
+
+
+# Test
+poetry run python ./tests/test_dialogflow.py --shop_id 1
+
+
+# Deploy Cloud Run
+
+gcloud auth login
+gcloud config set project arch-qa-454806
+
+
+set GOOGLE_CLOUD_PROJECT=arch-qa-454806
+set GOOGLE_CLOUD_LOCATION=us-central1
+set SERVICE_NAME=e-commerce-agent-service
+set APP_NAME=e-commerce-agent-app
+
+
+adk deploy cloud_run \
+--project=$GOOGLE_CLOUD_PROJECT \
+--region=$GOOGLE_CLOUD_LOCATION \
+$AGENT_PATH
+
+
+
+
+gcloud run deploy e-commerce-agent-service --source . --project=arch-qa-454806 --region=us-central1gcloud run services logs read e-commerce-agent-service --region us-central1 --with_ui
+
+
+gcloud run deploy e-commerce-agent-service --source . --project=arch-qa-454806 --region=us-central1gcloud run services logs read e-commerce-agent-service --region us-central1

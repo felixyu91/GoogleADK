@@ -1,9 +1,17 @@
 from typing import Optional
 import time
 import os
+import google.auth
+import google.auth.transport.requests
 
 # 使用正確的 Dialogflow CX SDK 導入語句
 try:
+    credentials, project = google.auth.default()
+    # print(f"成功獲取默認憑證！專案 ID: {project}")
+    # print(f"憑證類型: {type(credentials).__name__}")
+    # print(f"憑證是否有效: {credentials.valid}")
+
+
     from google.cloud.dialogflowcx_v3.services.sessions import SessionsClient
     from google.cloud.dialogflowcx_v3.types import (
         DetectIntentRequest,
@@ -13,9 +21,7 @@ try:
     )
 except ImportError as e:
     print(f"[重要警告] 無法導入 Dialogflow CX SDK: {e}")
-    print("請確保已安裝 google-cloud-dialogflow-cx 套件:")
     print("poetry add google-cloud-dialogflow-cx")
-    # 重新拋出錯誤，確保使用者看到問題
     raise
 
 class DialogflowSDKTools:
@@ -31,16 +37,16 @@ class DialogflowSDKTools:
         Args:
             project_id: GCP 專案 ID
             location: 代理位置
-            agent_id: Dialogflow CX 代理 ID
         """
         self.project_id = project_id
         self.location = location
-        self.agent_id = agent_id
         
+        googleCredentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") 
+        print(f"googleCredentials: {googleCredentials}")
+
         # 檢查環境變數
-        if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is None:
-            print("[警告] 環境變數 GOOGLE_APPLICATION_CREDENTIALS 未設定")
-            print("請設定此環境變數指向您的 Google Cloud 服務帳號金鑰檔案")
+        if googleCredentials is None:
+            print("環境變數 GOOGLE_APPLICATION_CREDENTIALS 未設定")
         
         # 建立 SessionsClient，SDK 會自動讀取環境變數 GOOGLE_APPLICATION_CREDENTIALS
         print("[資訊] 初始化 Dialogflow CX SDK")
@@ -48,6 +54,7 @@ class DialogflowSDKTools:
 
     def detect_intent(
         self,
+        agent_id: str,
         session_id: str,
         text: str,
         language_code: str = "zh-TW",
@@ -66,7 +73,7 @@ class DialogflowSDKTools:
         """
         try:
             # 建立完整的 session 路徑
-            session_path = f"projects/{self.project_id}/locations/{self.location}/agents/{self.agent_id}/sessions/{session_id}"
+            session_path = f"projects/{self.project_id}/locations/{self.location}/agents/{agent_id}/sessions/{session_id}"
             
             # 設定查詢文字輸入
             text_input = TextInput(text=text)

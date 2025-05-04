@@ -1,4 +1,3 @@
-
 """Deployment script for Data Science agent."""
 
 import logging
@@ -116,10 +115,14 @@ _AI_PLATFORM_GIT = (
 # Prepare your agent for Agent Engine
 def create(env_vars: dict[str, str]) -> None:
     """Creates and deploys the agent."""
+
+    # 現在 env_vars 中的所有值都是字符串或不存在
+    logger.info(f"準備傳遞給 AdkApp 的環境變數: {env_vars}")
+
     adk_app = AdkApp(
         agent=root_agent,
         enable_tracing=True,
-        env_vars=env_vars
+        # env_vars=env_vars
     )
 
     if not os.path.exists(AGENT_WHL_FILE):
@@ -131,8 +134,16 @@ def create(env_vars: dict[str, str]) -> None:
 
     remote_agent = agent_engines.create(
         adk_app,
-        requirements=[AGENT_WHL_FILE],
-        extra_packages=[AGENT_WHL_FILE],
+        requirements=[           
+            "google-adk (>=0.0.2)",
+            "google-genai (>=1.5.0,<2.0.0)",
+            "google-cloud-dialogflow-cx (>=1.37.0,<2.0.0)",
+            "python-dotenv (>=1.0.0,<2.0.0)",
+            "pydantic (>=2.10.6,<3.0.0)",
+            "absl-py (>=2.2.1,<3.0.0)",
+            "llama-index-core (>=0.10.0)",
+        ],
+        extra_packages=["./e_commerce"],
     )
     logger.info("Created remote agent: %s", remote_agent.resource_name)
     print(f"\nSuccessfully created agent: {remote_agent.resource_name}")
@@ -177,14 +188,34 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         if FLAGS.bucket
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", default_bucket_name)
     )
-    env_vars["GOOGLE_CLOUD_PROJECT"] = project_id
-    env_vars["GOOGLE_CLOUD_LOCATION"] = location
-    env_vars["RAG_CORPUS"] = os.getenv("RAG_CORPUS")
-    env_vars["ROOT_AGENT_MODEL"] = os.getenv("ROOT_AGENT_MODEL")
-    env_vars["COMPLAINT_AGENT_MODEL"] = os.getenv("COMPLAINT_AGENT_MODEL")
-    env_vars["ORDER_AGENT_MODEL"] = os.getenv("ORDER_AGENT_MODEL")
-    env_vars["FAQ_AGENT_MODEL"] = os.getenv("FAQ_AGENT_MODEL")
-    env_vars["DIALOGFLOW_ACCESS_TOKEN"] = os.getenv("DIALOGFLOW_ACCESS_TOKEN")
+    
+    # 只添加非 None 的環境變數，並確保全部轉換為字符串
+    env_var_keys = [
+        "GOOGLE_CLOUD_PROJECT",
+        "GOOGLE_CLOUD_LOCATION",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "RAG_CORPUS",
+        "ROOT_AGENT_MODEL",
+        "COMPLAINT_AGENT_MODEL",
+        "ORDER_AGENT_MODEL",
+        "FAQ_AGENT_MODEL",
+    ]
+    
+    for key in env_var_keys:
+        value = None
+        if key == "GOOGLE_CLOUD_PROJECT":
+            value = project_id
+        elif key == "GOOGLE_CLOUD_LOCATION":
+            value = location
+        else:
+            value = os.getenv(key)
+            
+        # 只添加有值的環境變數並確保它們是字符串
+        if value is not None:
+            env_vars[key] = str(value)
+            logger.info("%s: %s", key, value)
+        else:
+            logger.info("%s: [未設定]", key)
 
     logger.info("Using PROJECT: %s", project_id)
     logger.info("Using LOCATION: %s", location)
