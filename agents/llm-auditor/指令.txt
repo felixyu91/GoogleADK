@@ -1,15 +1,64 @@
 
-先用 CMD 取得虛擬路徑
+
+[CMD]
+
+1. CD C:\91APP\GoogleADK\agents\llm-auditor (非必要)
+
+
+
+2. poetry install (非必要)
+(非必要)
+
+
+3.取得虛擬路徑(非必要)
 poetry env info --path
-C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\llm-auditor-39xB1tfK-py3.13
 
-再用 PowerShell
-Set-Location "C:\Users\Felix Yu\Desktop\AI Agent\adk-samples-main\agents\llm-auditor"
+=> C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\llm-auditor-GHQxuvyi-py3.12
 
- & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\llm-auditor-39xB1tfK-py3.13\Scripts\Activate.ps1"
+
+
+[PowerShell]
+Set-Location "C:\91APP\GoogleADK\agents\llm-auditor"
+
+ & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\llm-auditor-GHQxuvyi-py3.12\Scripts\Activate.ps1"
  
- adk run llm_auditor
+
+poetry run adk web
+
+poetry run adk api_server
 
 
-adk web
 
+
+# Test
+poetry run python ./tests/test_dialogflow.py --shop_id 1
+
+
+# Deploy Cloud Run
+
+gcloud auth login
+gcloud config set project arch-qa-454806
+
+
+set GOOGLE_CLOUD_PROJECT=arch-qa-454806
+set GOOGLE_CLOUD_LOCATION=us-central1
+set AGENT_PATH="./llm_auditor"
+set SERVICE_NAME=llm-auditor-agent-service
+set APP_NAME=llm-auditor-agent-app
+
+
+
+
+
+adk deploy cloud_run --project=%GOOGLE_CLOUD_PROJECT% --region=%GOOGLE_CLOUD_LOCATION% --service-name=%SERVICE_NAME% %AGENT_PATH%
+
+
+
+
+
+set GOOGLE_CLOUD_PROJECT=arch-qa-454806
+set GOOGLE_CLOUD_LOCATION=us-central1
+set GOOGLE_GENAI_USE_VERTEXAI=True
+
+
+gcloud run deploy llm-auditor-agent-service --source . --region us-central1 --project arch-qa-454806 --allow-unauthenticated --set-env-vars="GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT,GOOGLE_CLOUD_LOCATION=$GOOGLE_CLOUD_LOCATION,GOOGLE_GENAI_USE_VERTEXAI=$GOOGLE_GENAI_USE_VERTEXAI"

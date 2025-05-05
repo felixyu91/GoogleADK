@@ -1,0 +1,81 @@
+
+
+[CMD]
+
+1. CD C:\91APP\GoogleADK\agents\e-commerce (非必要)
+
+
+
+2. poetry install (非必要)
+(非必要)
+
+
+3.取得虛擬路徑(非必要)
+poetry env info --path
+
+=> C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\e-commerce-GHQxuvyi-py3.12
+
+
+
+[PowerShell]
+Set-Location "C:\91APP\GoogleADK\agents\e-commerce"
+
+ & "C:\Users\Felix Yu\AppData\Local\pypoetry\Cache\virtualenvs\e-commerce-GHQxuvyi-py3.12\Scripts\Activate.ps1"
+ 
+
+poetry run adk web
+
+poetry run adk api_server
+
+
+
+
+# Test Dialogflow
+poetry run python ./tests/test_dialogflow.py --shop_id 1
+
+
+# Depoloy Vetex AI
+
+python -m build --wheel
+poetry lock  
+poetry install  
+
+
+
+python deployment\deploy.py --create --project_id arch-qa-454806 --location us-central1 --bucket arch-qa-454806-adk-staging
+
+
+# ADK
+
+gcloud auth login
+gcloud config set project arch-qa-454806
+
+
+set GOOGLE_CLOUD_PROJECT=arch-qa-454806
+set GOOGLE_CLOUD_LOCATION=us-central1
+set SERVICE_NAME=e-commerce-agent-service
+set APP_NAME=e-commerce-agent-app
+
+
+adk deploy cloud_run \
+--project=$GOOGLE_CLOUD_PROJECT \
+--region=$GOOGLE_CLOUD_LOCATION \
+$AGENT_PATH
+
+
+
+
+#gcloud (CMD)
+
+local
+docker build -t e-commerce-agent:latest .
+docker run -p 8080:8080 -e ENV=qa e-commerce-agent:latest
+
+
+
+qa/prod
+gcloud run deploy e-commerce-agent-service --source . --region us-central1 --project arch-qa-454806 --allow-unauthenticated --set-env-vars="ENV=qa"
+
+gcloud run deploy e-commerce-agent-service --source . --region us-central1 --project arch-qa-454806 --allow-unauthenticated --set-env-vars="ENV=qa,SHOP_ID=2,GOOGLE_GENAI_USE_VERTEXAI=1,GOOGLE_CLOUD_PROJECT=arch-qa-454806,GOOGLE_CLOUD_LOCATION=us-central1,ROOT_AGENT_MODEL=gemini-2.0-flash-001,COMPLAINT_AGENT_MODEL=gemini-2.0-flash-001,ORDER_AGENT_MODEL=gemini-2.0-flash-001,FAQ_AGENT_MODEL=gemini-2.0-flash-001"
+
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=e-commerce-agent-service" --project arch-qa-454806 --limit 50

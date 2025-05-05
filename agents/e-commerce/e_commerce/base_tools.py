@@ -4,8 +4,20 @@
 """
 import os
 
+from dotenv import load_dotenv, find_dotenv
+
 # 定義預設值
 DEFAULT_SHOP_ID = 1  # 1=小三美日, 2=莎莎
+
+def load_env() -> None:
+    """
+    讀取環境變數
+    """
+    env=os.getenv("ENV", "development")
+    print(f"Env: {env}")
+
+    env_file = find_dotenv(f'.env.{env}')
+    load_dotenv(dotenv_path=env_file, override=True)
 
 def get_shop_id() -> int:
     """
@@ -14,7 +26,11 @@ def get_shop_id() -> int:
     Returns:
         商店 ID (1=小三美日, 2=莎莎網店)
     """
+    
     shop_id = os.environ.get('SHOP_ID')
+    if not shop_id:
+        raise Exception("未設定 SHOP_ID 環境變數")
+
     print(f"shop_id: {shop_id}")
     return int(shop_id)
 

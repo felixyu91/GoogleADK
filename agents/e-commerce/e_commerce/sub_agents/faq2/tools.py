@@ -65,8 +65,8 @@ class DialogflowSDKTools:
         print(f"googleCredentials: {googleCredentials}")
 
         # 檢查環境變數
-        if googleCredentials is None:
-            print("環境變數 GOOGLE_APPLICATION_CREDENTIALS 未設定")
+        # if googleCredentials is None:
+        #     raise Exception("未設定 GOOGLE_APPLICATION_CREDENTIALS 環境變數")
         
         # 建立 SessionsClient，SDK 會自動讀取環境變數 GOOGLE_APPLICATION_CREDENTIALS
         print("[資訊] 初始化 Dialogflow CX SDK")

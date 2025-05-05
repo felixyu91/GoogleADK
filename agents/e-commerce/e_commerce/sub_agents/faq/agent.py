@@ -5,11 +5,10 @@ from google.genai import types
 from google.adk.agents import LlmAgent
 from google.adk.tools.retrieval.vertex_ai_rag_retrieval import VertexAiRagRetrieval
 from vertexai.preview import rag
-from dotenv import load_dotenv
 from .prompts import return_instructions, return_global_instructions
-from e_commerce.base_tools import get_shop_id, get_shop_name
+from e_commerce.base_tools import load_env, get_shop_id, get_shop_name
 
-load_dotenv()
+load_env()
 
 shop_id = get_shop_id()
 shop_name = get_shop_name(shop_id)
