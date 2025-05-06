@@ -38,25 +38,22 @@ def query_dialogflow(text: str) -> str:
     if response:
         # 取得 QueryResult
         query_result = response.query_result
-        
+
         # 首先嘗試從回應訊息中獲取文字
         if query_result.response_messages:
             for msg in query_result.response_messages:
                 if hasattr(msg, "text") and msg.text and msg.text.text:
-                    return msg.text.text[0] if msg.text.text else f"我理解你想詢問: {intent}"
+                    return msg.text.text[0]
         
         # 如果回應訊息中沒有文字，嘗試從 fulfillment_text 獲取
         if query_result.fulfillment_text:
             return query_result.fulfillment_text
-        
-        # 最後回傳識別的意圖
-        return f"我理解你想詢問關於「{intent}」的問題，但目前沒有特定回應。"
     
     # 如果完全無法獲取回應
     return "抱歉，我目前無法回應您的問題，請稍後再試。"
 
 root_agent = LlmAgent(
-    model=os.getenv("FAQ_AGENT_MODEL", "gemini-2.0-flash-001"),
+    model=os.getenv("FAQ_AGENT_MODEL"),
     name='faq2_agent',
     instruction=return_instructions(),
     global_instruction=return_global_instructions(shop_name),

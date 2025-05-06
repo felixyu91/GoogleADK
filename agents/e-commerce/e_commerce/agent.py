@@ -12,11 +12,16 @@ shop_id = get_shop_id()
 shop_name = get_shop_name(shop_id)
 
 root_agent = LlmAgent(
-    model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.0-flash-001"),
+    model=os.getenv("ROOT_AGENT_MODEL"),
     name="root_agent",
     instruction=return_instructions(),
     global_instruction=return_global_instructions(shop_name),
-    sub_agents=[complaint_agent, order_agent],
+    sub_agents=
+    [
+        complaint_agent,
+        order_agent,
+        faq2_agent
+    ],
     tools=[],
     generate_content_config=types.GenerateContentConfig(temperature=0.01),
 )

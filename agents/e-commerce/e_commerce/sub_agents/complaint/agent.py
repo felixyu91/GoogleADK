@@ -24,7 +24,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
     if "complaint_category" in callback_context.state:
         category = callback_context.state["complaint_category"]
         callback_context._invocation_context.agent.instruction = (
-            return_instructions_complaint()
+            return_instructions()
             + f"""
     
     --------- 目前識別的投訴類別 ---------
@@ -34,7 +34,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
         )
 
 root_agent = LlmAgent(
-    model="gemini-2.0-flash-001",
+    model=os.getenv("COMPLAINT_AGENT_MODEL"),
     name="complaint_agent",
     instruction=return_instructions(),
     global_instruction=return_global_instructions(shop_name),

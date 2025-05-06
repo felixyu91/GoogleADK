@@ -13,7 +13,7 @@ def load_env() -> None:
     """
     讀取環境變數
     """
-    env=os.getenv("ENV", "development")
+    env=os.getenv("ENV", "dev")
     print(f"Env: {env}")
 
     env_file = find_dotenv(f'.env.{env}')

@@ -37,7 +37,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
         )
 
 root_agent = LlmAgent(
-    model="gemini-2.0-flash-001",
+    model=os.getenv("ORDER_AGENT_MODEL"),
     name="order_agent",
     instruction=return_instructions(),
     global_instruction=return_global_instructions(shop_name),
@@ -45,5 +45,5 @@ root_agent = LlmAgent(
     tools=[
         get_order_details
     ],
-    generate_content_config=types.GenerateContentConfig(temperature=0.2),
+    generate_content_config=types.GenerateContentConfig(temperature=0.1),
 )
